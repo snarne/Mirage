@@ -1,0 +1,59 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # macOS only: the engine talks to Apple's device services, the apps are SwiftUI, and
+    # the iPhone build needs Xcode. Nothing here needs an actual iPhone — the whole suite
+    # runs against a mock injector.
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the engine
+        run: |
+          python -m venv .venv
+          ./.venv/bin/pip install --quiet --upgrade pip
+          ./.venv/bin/pip install --quiet -e "core[dev]"
+
+      - name: Engine tests
+        working-directory: core
+        run: ../.venv/bin/python -m pytest -q
+
+      # Not optional, and easy to forget: MirageDevice links this, so without it `swift
+      # test` fails to link and every pure Swift test stops running with it.
+      - name: Build the Rust bridge
+        run: ./scripts/build-native.sh
+
+      - name: App tests
+        working-directory: ui
+        run: swift test
+
+      - name: Build the Mac app
+        run: |
+          # Unsigned: CI has no signing identity, and the build should not depend on one.
+          SIGN_IDENTITY="-" ./scripts/build_app.sh release
+
+      - name: Build the iPhone app
+        run: |
+          brew install --quiet xcodegen
+          ./scripts/gen-xcodeproj.sh
+          # No signing identity here either, so build for a generic device without it.
+          # This is a compile check: it catches the iOS-only breakage that the macOS
+          # targets cannot, which is most of the interesting kind.
+          xcodebuild build \
+            -project ios/Mirage.xcodeproj \
+            -scheme Mirage \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO

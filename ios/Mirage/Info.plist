@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleDevelopmentRegion</key><string>en</string>
+  <key>CFBundleExecutable</key><string>$(EXECUTABLE_NAME)</string>
+  <key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+  <key>CFBundleName</key><string>$(PRODUCT_NAME)</string>
+  <key>CFBundleDisplayName</key><string>Mirage</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>$(MARKETING_VERSION)</string>
+  <key>CFBundleVersion</key><string>$(CURRENT_PROJECT_VERSION)</string>
+  <key>LSRequiresIPhoneOS</key><true/>
+  <key>UILaunchScreen</key><dict/>
+  <key>UIRequiredDeviceCapabilities</key>
+  <array><string>arm64</string></array>
+  <key>UISupportedInterfaceOrientations</key>
+  <array><string>UIInterfaceOrientationPortrait</string></array>
+
+  <!-- A drive is not a foreground task. Locking the phone and putting it in a pocket is
+       the normal case, so the tick loop has to keep running; without this the app is
+       suspended within seconds and the journey freezes mid-street.
+
+       This is a plist key, not an entitlement. It costs a free Apple ID nothing. What it
+       requires is that the app genuinely holds a background location session, which
+       BackgroundKeepAlive does — and which is why iOS shows the blue status bar while a
+       drive is running. That indicator is not a side effect to be hidden; it is the
+       honest signal that something is using location. -->
+  <key>UIBackgroundModes</key>
+  <array><string>location</string></array>
+
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>Mirage shows your real position on the map, and keeps the journey running while your iPhone is locked. It never sends your location anywhere.</string>
+
+  <!-- Reaching the device's own lockdown service goes through a loopback VPN, and iOS
+       classes that as local networking. Without this key the connection fails with no
+       explanation at all. -->
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>Mirage talks to your iPhone's own developer service through the loopback VPN. Nothing leaves the device.</string>
+
+  <key>NSAppTransportSecurity</key>
+  <dict>
+    <key>NSAllowsLocalNetworking</key><true/>
+  </dict>
+
+  <key>NSSupportsLiveActivities</key><true/>
+  <key>NSSupportsLiveActivitiesFrequentUpdates</key><true/>
+
+  <key>ITSAppUsesNonExemptEncryption</key><false/>
+</dict>
+</plist>

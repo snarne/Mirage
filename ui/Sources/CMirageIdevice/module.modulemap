@@ -1,0 +1,5 @@
+module CMirageIdevice {
+    header "mirage_idevice.h"
+    link "mirage_idevice"
+    export *
+}

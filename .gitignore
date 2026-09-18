@@ -1,0 +1,79 @@
+# ── Signing and secrets ───────────────────────────────────────────────────────
+# This project is code-signed, so certificates and provisioning assets are the
+# most damaging thing that could land here by accident.
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+*.pem
+*.key
+ExportOptions.plist
+.env
+.env.*
+
+# ── Device credentials ────────────────────────────────────────────────────────
+# A pairing file is enough for anything holding it to talk to that iPhone, and the
+# developer disk image is Apple's software rather than this project's. Both are produced
+# by scripts/prepare-phone.sh, which writes them to the Desktop precisely so they cannot
+# be committed by accident — these patterns are the second line.
+pairing.plist
+*.mobiledevicepairing
+*.trustcache
+BuildManifest.plist
+Image.dmg
+Mirage Setup/
+marker.json
+device-check.json
+
+# ── Generated Xcode projects ──────────────────────────────────────────────────
+# ios/Mirage.xcodeproj is written by scripts/gen-xcodeproj.sh from ios/project.yml. It is
+# a pile of UUIDs that conflicts on every merge, and — the part that matters — it carries
+# whoever generated it: Xcode writes DEVELOPMENT_TEAM into project.pbxproj, and names the
+# per-user folders after the account. Every .xcodeproj here is generated, so none of them
+# belong in the repository.
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+*.xcuserdatad/
+*.xcuserstate
+
+# ── Build output ──────────────────────────────────────────────────────────────
+build/
+DerivedData/
+.build/
+.swiftpm/
+target/
+*.egg-info/
+dist/
+
+# ── Environments and caches ───────────────────────────────────────────────────
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Mirage runtime state ──────────────────────────────────────────────────────
+# Normally in ~/Library/Application Support/Mirage, but MIRAGE_STATE_DIR can point
+# anywhere — including here during development. These hold saved locations, a consent
+# record and a device fingerprint, and must never be committed.
+consent.json
+simulation.json
+trips.json
+device-salt
+control.sock
+*.log
+*.tmp
+
+# ── Editors and OS ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes

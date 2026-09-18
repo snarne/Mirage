@@ -1,0 +1,18 @@
+[project]
+name = "mirage-core"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["pymobiledevice3>=11.12"]
+
+[project.optional-dependencies]
+# pytest-asyncio is required, not optional-for-convenience: most of the suite exercises
+# the async session and RPC layers.
+dev = ["pytest>=8", "pytest-asyncio>=0.24"]
+
+[project.scripts]
+mirage = "mirage.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

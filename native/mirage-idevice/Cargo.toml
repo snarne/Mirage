@@ -1,0 +1,63 @@
+[package]
+name = "mirage-idevice"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "C ABI over idevice's DVT location simulation, for Mirage's Swift LocationInjector."
+
+[lib]
+name = "mirage_idevice"
+# staticlib ONLY, deliberately.
+#
+# This used to build a cdylib beside it. `-lmirage_idevice` then found the .dylib first
+# and the linker recorded its absolute path in the repo — which works on the machine that
+# built it and fails at launch anywhere else, including on the phone, with a dyld abort
+# naming a path under someone's Desktop. There is nothing the dynamic build was for that
+# the archive does not do.
+crate-type = ["staticlib"]
+
+# Mints the RemotePairing credential the phone needs, from the Mac over USB. Host-only:
+# scripts/build-native.sh builds --lib alone for iOS.
+[[bin]]
+name = "mirage-pair"
+path = "src/bin/mirage-pair.rs"
+
+[dependencies]
+# Pinned: this is the version whose API the FFI was written against.
+idevice = { version = "0.1.68", default-features = false, features = [
+    # A TLS backend is not optional: `PairingFile` itself is gated behind one, so the
+    # crate does not compile without it. rustls over openssl deliberately — pure Rust,
+    # no system OpenSSL to find, and far less to go wrong when this is cross-compiled
+    # for iOS.
+    "rustls",
+    # rustls needs a crypto provider named explicitly. ring over aws-lc (which wants
+    # cmake) and over rustcrypto (pure Rust but slower); ring cross-compiles to
+    # aarch64-apple-ios without extra build tooling, which is where this is headed.
+    "ring",
+    # The iOS 17+ path: DVT over RSD, not com.apple.dt.simulatelocation, which modern
+    # devices answer with InvalidService.
+    "dvt",
+    "rsd",
+    "location_simulation",
+    "usbmuxd",           # USB, for the Mac app
+    "tcp",               # a paired host over the network — and, on the phone, itself
+    "core_device_proxy", # the iOS 17+ tunnel
+    "tunnel_tcp_stack",
+    # The on-device path: pair-verify against the device's own RemotePairing service and
+    # bring up its TLS-PSK tunnel. lockdownd does not answer over the loopback VPN's tun
+    # interface, so this is the only way in from the phone itself.
+    "remote_pairing",
+    "xpc",               # RemoteXPC, which pair-setup over USB runs on top of
+    # Mounting the developer disk image. Without this the phone needs a Mac again after
+    # every reboot, because a mount does not survive one.
+    "mobile_image_mounter",
+    "tss",               # signs that image for this specific chip
+] }
+# "sync" for the mpsc channel the worker thread listens on.
+tokio = { version = "1", features = ["rt", "sync", "net", "time", "macros"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
